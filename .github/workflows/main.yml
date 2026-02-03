@@ -1,37 +1,32 @@
-name: Deploy Static Site to EC2
+name: Deploy HTML
 
 on:
   push:
-    branches: [ "main" ]
+    branches:
+      - main
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout repo
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # OPTIONAL: If you have a build step (React/Vite/etc), do it here.
-      # - name: Install dependencies
-      #   run: npm ci
-      # - name: Build
-      #   run: npm run build
-      #   # build output might be in dist/ or build/
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
 
-      - name: Setup SSH key
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+      - name: Upload HTML file
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: .
 
-      - name: Deploy files to EC2 (rsync)
-        run: |
-          rsync -avz --delete \
-            ./ \
-            ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }}:/var/www/my-site/
-
-      - name: Reload Nginx (optional)
-        run: |
+      - name: Deploy to GitHub Pages
+        uses: actions/deploy-pages@v4
+        run : |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "sudo systemctl reload nginx"
