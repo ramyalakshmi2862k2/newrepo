@@ -22,4 +22,5 @@ jobs:
 
      - name: Deploy to GitHub Pages
        uses: actions/deploy-pages@v4
+     - name : ssh connection
        run :  ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} "sudo systemctl reload nginx"
